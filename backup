@@ -1,0 +1,132 @@
+void requestLocationPermission() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Handle the scenario where the user denies permission
+        return;
+      }
+    }
+  }
+
+  void getLocationDetails() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Handle the scenario where location services are disabled
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.deniedForever) {
+      // Handle the scenario where the user denied permission forever
+      return;
+    }
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Handle the scenario where the user denies permission
+        return;
+      }
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+
+    if (placemarks != null && placemarks.isNotEmpty) {
+      Placemark placemark = placemarks[0];
+      String? country = placemark.country;
+      String? city = placemark.locality;
+      print('Latitude: ${position.latitude}');
+      print('Longitude: ${position.longitude}');
+      print('Country: $country');
+      print('City: $city');
+    }
+  }
+
+
+#####################################################
+
+ void getLocationDetails() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.deniedForever) {
+      // User denied permission forever, show a dialog explaining how to enable location services
+      showDialog(
+        context: Get.context!,
+        builder: (BuildContext context) => AlertDialog(
+          title: Text('Location Access Denied'),
+          content: Text(
+              'To enable location services, please go to your device settings and allow the app to access your location.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (permission == LocationPermission.denied) {
+      // User denied permission, show a dialog explaining why location access is needed and ask again
+      showDialog(
+        context: Get.context!,
+        builder: (BuildContext context) => AlertDialog(
+          title: Text('Location Access Required'),
+          content: Text(
+              'This app requires access to your location to provide relevant information. Please grant permission to access your location.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text('Open Settings'),
+              onPressed: () {
+                // Open app settings on the device
+                Geolocator.openAppSettings();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+
+    if (placemarks != null && placemarks.isNotEmpty) {
+      Placemark placemark = placemarks[0];
+      String? country = placemark.country;
+      String? city = placemark.locality;
+      print('Latitude: ${position.latitude}');
+      print('Longitude: ${position.longitude}');
+      print('Country: $country');
+      print('City: $city');
+    }
+  }
+
+
+  import 'package:geolocator/geolocator.dart';
+
+void checkLocationEnabled() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    // Location services are disabled
+    // You can show an alert or take appropriate action
+    print('Location services are disabled');
+  } else {
+    // Location services are enabled
+    // You can proceed with retrieving the location
+    print('Location services are enabled');
+  }
+}
